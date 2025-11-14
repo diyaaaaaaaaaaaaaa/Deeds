@@ -1,59 +1,97 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { useParcel } from '@/contexts/ParcelContext';
+// src/pages/AddLandPage.tsx
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useParcel } from "@/contexts/ParcelContext";
+import { useContract } from "@/hooks/useContract";
 
 const AddLandPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { districts, addParcel } = useParcel();
+  const { submit: submitOnChain } = useContract();
+
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    district: '',
-    tehsil: '',
-    village: '',
-    khasraNumber: '',
-    area: '',
-    notes: '',
-    documentCID: '',
+    fullName: "",
+    phone: "",
+    email: "",
+    district: "",
+    tehsil: "",
+    village: "",
+    khasraNumber: "",
+    area: "",
+    notes: "",
+    documentCID: "",
   });
 
   const handleNext = () => {
-    setStep(step + 1);
+    setStep((s) => Math.min(5, s + 1));
   };
 
   const handleBack = () => {
-    setStep(step - 1);
+    setStep((s) => Math.max(1, s - 1));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Basic validation
+    if (!formData.fullName || !formData.khasraNumber || !formData.district) {
+      toast({ title: "Missing fields", description: "Please fill required fields." });
+      return;
+    }
+
+    // Call blockchain submit (best-effort). If wallet missing or tx fails, we still add to local store.
+    try {
+      toast({ title: "Submitting", description: "Sending transaction to blockchain...", variant: "default" });
+
+      // map to contract parameter names
+      await submitOnChain({
+        khasra_number: formData.khasraNumber,
+        document_cid: formData.documentCID || "",
+        area_sqm: Number(formData.area) || 0,
+        notes: formData.notes || "",
+        village: formData.village || "",
+        tehsil: formData.tehsil || "",
+        district: formData.district || "",
+      });
+
+      // If we reach here, tx was submitted successfully
+      toast({ title: "✅ Submitted on-chain", description: "Your land claim transaction was sent. It may take a short while to be confirmed." });
+    } catch (err) {
+      // show warning but continue
+      toast({
+        title: "⚠️ Blockchain submit failed",
+        description: (err as Error).message || "Could not send transaction. Saving locally.",
+        variant: "destructive",
+      });
+    }
+
+    // Always add to local context so UI updates instantly (mock wallet used earlier)
     const newParcelId = addParcel({
       khasraNumber: formData.khasraNumber,
       ownerName: formData.fullName,
-      ownerWallet: '0x' + Math.random().toString(16).substring(2, 20), // Mock wallet
+      ownerWallet: "0x" + Math.random().toString(16).substring(2, 20),
       district: formData.district,
       tehsil: formData.tehsil,
       village: formData.village,
-      area: Number(formData.area),
-      status: 'pending',
+      area: Number(formData.area) || 0,
+      status: "pending",
       documentCID: formData.documentCID || undefined,
       notes: formData.notes || undefined,
     });
 
     toast({
-      title: '✅ Success!',
+      title: "✅ Success!",
       description: `Your land claim has been submitted! Parcel ID: #${newParcelId}. Status: ⏳ PENDING`,
     });
-    navigate('/my-lands');
+
+    navigate("/my-lands");
   };
 
   return (
@@ -61,11 +99,8 @@ const AddLandPage = () => {
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto vintage-border">
           <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              ➕ Add Your Land
-            </CardTitle>
+            <CardTitle className="text-2xl flex items-center gap-2">➕ Add Your Land</CardTitle>
             <CardDescription>Step {step} of 5</CardDescription>
-            {/* Progress Bar */}
             <div className="w-full bg-muted rounded-full h-2 mt-4">
               <div
                 className="bg-primary h-2 rounded-full transition-all"
@@ -73,8 +108,8 @@ const AddLandPage = () => {
               />
             </div>
           </CardHeader>
+
           <CardContent className="space-y-6">
-            {/* Step 1: Basic Information */}
             {step === 1 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Basic Information</h3>
@@ -113,7 +148,6 @@ const AddLandPage = () => {
               </div>
             )}
 
-            {/* Step 2: Land Location */}
             {step === 2 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Land Location</h3>
@@ -161,7 +195,6 @@ const AddLandPage = () => {
               </div>
             )}
 
-            {/* Step 3: Land Details */}
             {step === 3 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Land Details</h3>
@@ -205,7 +238,6 @@ const AddLandPage = () => {
               </div>
             )}
 
-            {/* Step 4: Document Upload */}
             {step === 4 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Document Upload</h3>
@@ -237,7 +269,6 @@ const AddLandPage = () => {
               </div>
             )}
 
-            {/* Step 5: Review & Submit */}
             {step === 5 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Review & Submit</h3>
