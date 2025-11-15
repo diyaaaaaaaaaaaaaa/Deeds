@@ -93,29 +93,28 @@ export const ParcelProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-const approveParcel = (id: number, council: CouncilMember) => {
-  setParcels(prev =>
-    prev.map(p => {
-      if (p.id !== id) return p;
+  const approveParcel = (id: number, council: CouncilMember) => {
+    setParcels(prev =>
+      prev.map(p => {
+        if (p.id !== id) return p;
 
-      const newApproval = {
-        councilMemberName: council.name,
-        councilMemberRole: council.role ?? "",
-        approvalDate: new Date().toISOString().split("T")[0],
-        signature: `0x${Math.random().toString(16).slice(2, 10)}`,
-      };
+        const newApproval = {
+          councilMemberName: council.name,
+          councilMemberRole: council.role ?? "",
+          approvalDate: new Date().toISOString().split("T")[0],
+          signature: `0x${Math.random().toString(16).slice(2, 10)}`,
+        };
 
-      const updatedApprovals = [...(p.approvals || []), newApproval];
+        const updatedApprovals = [...(p.approvals || []), newApproval];
 
-      return {
-        ...p,
-        approvals: updatedApprovals,
-        status: updatedApprovals.length >= 1 ? "approved" : "pending",
-      };
-    })
-  );
-};
-
+        return {
+          ...p,
+          approvals: updatedApprovals,
+          status: updatedApprovals.length >= 1 ? "approved" : "pending",
+        };
+      })
+    );
+  };
 
   const rejectParcel = (id: number) => updateParcel(id, { status: 'rejected' });
 

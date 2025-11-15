@@ -13,7 +13,8 @@ export interface Parcel {
   createdDate: string;
   documentCID?: string;
   notes?: string;
-  approvals?: Approval[];
+  mapLink?: string;
+  approvals?: any[];
 }
 
 export interface Approval {

@@ -29,98 +29,93 @@ const AddLandPage = () => {
     area: "",
     notes: "",
     documentCID: "",
+    mapLink: "",    // ⭐ NEW MAP FIELD
   });
 
-  const handleNext = () => {
-    setStep((s) => Math.min(5, s + 1));
+  const handleNext = () => setStep((s) => Math.min(5, s + 1));
+  const handleBack = () => setStep((s) => Math.max(1, s - 1));
+
+  const handleSubmit = async () => {
+    if (!formData.fullName || !formData.khasraNumber || !formData.district) {
+      toast({ title: "Missing fields", description: "Please fill required fields." });
+      return;
+    }
+
+    // --- WALLET CHECK ---
+    const wallet =
+      (window as any).aptos ||
+      (window as any).petra ||
+      (window as any).martian ||
+      null;
+
+    if (!wallet) {
+      toast({
+        title: "Wallet not found",
+        description: "Install Petra or Martian wallet to submit on-chain.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await wallet.connect();
+    } catch {
+      toast({
+        title: "Wallet connection failed",
+        description: "Please unlock your wallet or approve the request.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // --- ON-CHAIN SUBMIT ---
+    try {
+      toast({ title: "Submitting", description: "Sending transaction to blockchain..." });
+
+      await submitOnChain({
+        khasra_number: formData.khasraNumber,
+        document_cid: formData.documentCID,
+        area_sqm: Number(formData.area) || 0,
+        notes: formData.notes,
+        village: formData.village,
+        tehsil: formData.tehsil,
+        district: formData.district,
+      });
+
+      toast({
+        title: "Submitted on-chain",
+        description: "Transaction sent successfully.",
+      });
+    } catch (err) {
+      toast({
+        title: "Blockchain error",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
+    }
+
+    // --- ALWAYS ADD LOCALLY ---
+    const newParcelId = addParcel({
+      khasraNumber: formData.khasraNumber,
+      ownerName: formData.fullName,
+      ownerWallet: wallet.address || "0x",
+      district: formData.district,
+      tehsil: formData.tehsil,
+      village: formData.village,
+      area: Number(formData.area) || 0,
+      status: "pending",
+      documentCID: formData.documentCID,
+      notes: formData.notes,
+      mapLink: formData.mapLink, // ⭐ SAVED HERE
+    });
+
+    toast({
+      title: "Success",
+      description: `Parcel submitted! ID: ${newParcelId}`,
+    });
+
+    navigate("/my-lands");
   };
-
-  const handleBack = () => {
-    setStep((s) => Math.max(1, s - 1));
-  };
-
-const handleSubmit = async () => {
-  if (!formData.fullName || !formData.khasraNumber || !formData.district) {
-    toast({ title: "Missing fields", description: "Please fill required fields." });
-    return;
-  }
-
-  // --- WALLET CHECK ---
-  const wallet =
-    (window as any).aptos ||
-    (window as any).petra ||
-    (window as any).martian ||
-    null;
-
-  if (!wallet) {
-    toast({
-      title: "Wallet not found",
-      description: "Install Petra or Martian wallet to submit on-chain.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  try {
-    await wallet.connect();
-  } catch {
-    toast({
-      title: "Wallet connection failed",
-      description: "Please unlock your wallet or approve the request.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  // --- ON-CHAIN SUBMIT ---
-  try {
-    toast({ title: "Submitting", description: "Sending transaction to blockchain..." });
-
-    await submitOnChain({
-  khasra_number: formData.khasraNumber || "",
-  document_cid: formData.documentCID || "",
-  area_sqm: Number(formData.area) || 0,
-  notes: formData.notes || "",
-  village: formData.village || "",
-  tehsil: formData.tehsil || "",
-  district: formData.district || "",
-});
-
-
-    toast({
-      title: "Submitted on-chain",
-      description: "Transaction sent successfully.",
-    });
-  } catch (err) {
-    toast({
-      title: "Blockchain error",
-      description: (err as Error).message,
-      variant: "destructive",
-    });
-  }
-
-  // always add locally
-  const newParcelId = addParcel({
-    khasraNumber: formData.khasraNumber,
-    ownerName: formData.fullName,
-    ownerWallet: wallet.address || "0x",
-    district: formData.district,
-    tehsil: formData.tehsil,
-    village: formData.village,
-    area: Number(formData.area) || 0,
-    status: "pending",
-    documentCID: formData.documentCID || undefined,
-    notes: formData.notes || undefined,
-  });
-
-  toast({
-    title: "Success",
-    description: `Parcel submitted! ID: ${newParcelId}`,
-  });
-
-  navigate("/my-lands");
-};
-
 
   return (
     <div className="min-h-screen tribal-pattern">
@@ -138,9 +133,11 @@ const handleSubmit = async () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* ---------- STEP 1 ---------- */}
             {step === 1 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Basic Information</h3>
+
                 <div>
                   <Label htmlFor="fullName">Your Full Name *</Label>
                   <Input
@@ -150,6 +147,7 @@ const handleSubmit = async () => {
                     placeholder="Enter your full name"
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="phone">Your Phone Number *</Label>
                   <Input
@@ -160,6 +158,7 @@ const handleSubmit = async () => {
                     placeholder="+91 XXXXX XXXXX"
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="email">Your Email (Optional)</Label>
                   <Input
@@ -170,19 +169,25 @@ const handleSubmit = async () => {
                     placeholder="your.email@example.com"
                   />
                 </div>
+
                 <Button onClick={handleNext} className="w-full">
                   NEXT →
                 </Button>
               </div>
             )}
 
+            {/* ---------- STEP 2 ---------- */}
             {step === 2 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Land Location</h3>
+
                 <div>
-                  <Label htmlFor="district">District *</Label>
-                  <Select value={formData.district} onValueChange={(value) => setFormData({ ...formData, district: value })}>
-                    <SelectTrigger id="district">
+                  <Label>District *</Label>
+                  <Select
+                    value={formData.district}
+                    onValueChange={(value) => setFormData({ ...formData, district: value })}
+                  >
+                    <SelectTrigger>
                       <SelectValue placeholder="Select District" />
                     </SelectTrigger>
                     <SelectContent>
@@ -194,24 +199,25 @@ const handleSubmit = async () => {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label htmlFor="tehsil">Tehsil *</Label>
+                  <Label>Tehsil *</Label>
                   <Input
-                    id="tehsil"
                     value={formData.tehsil}
                     onChange={(e) => setFormData({ ...formData, tehsil: e.target.value })}
-                    placeholder="Enter tehsil name"
+                    placeholder="Enter tehsil"
                   />
                 </div>
+
                 <div>
-                  <Label htmlFor="village">Village *</Label>
+                  <Label>Village *</Label>
                   <Input
-                    id="village"
                     value={formData.village}
                     onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                    placeholder="Enter village name"
+                    placeholder="Enter village"
                   />
                 </div>
+
                 <div className="flex gap-2">
                   <Button onClick={handleBack} variant="outline" className="flex-1">
                     ← BACK
@@ -223,38 +229,50 @@ const handleSubmit = async () => {
               </div>
             )}
 
+            {/* ---------- STEP 3 ---------- */}
             {step === 3 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Land Details</h3>
+
                 <div>
-                  <Label htmlFor="khasraNumber">Khasra Number *</Label>
+                  <Label>Khasra Number *</Label>
                   <Input
-                    id="khasraNumber"
                     value={formData.khasraNumber}
                     onChange={(e) => setFormData({ ...formData, khasraNumber: e.target.value })}
                     placeholder="e.g., 315/2A"
                   />
                 </div>
+
                 <div>
-                  <Label htmlFor="area">Area (sqm) *</Label>
+                  <Label>Area (sqm) *</Label>
                   <Input
-                    id="area"
                     type="number"
                     value={formData.area}
                     onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                     placeholder="e.g., 5000"
                   />
                 </div>
+
                 <div>
-                  <Label htmlFor="notes">Notes/Description</Label>
+                  <Label>Notes</Label>
                   <Textarea
-                    id="notes"
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="e.g., Agricultural land with well"
                     rows={4}
                   />
                 </div>
+
+                {/* ⭐ GOOGLE MAPS / OPENSTREETMAP LINK */}
+                <div>
+                  <Label>Map Link (Optional)</Label>
+                  <Input
+                    value={formData.mapLink}
+                    onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
+                    placeholder="Paste OpenStreetMap / Google Maps link"
+                  />
+                </div>
+
                 <div className="flex gap-2">
                   <Button onClick={handleBack} variant="outline" className="flex-1">
                     ← BACK
@@ -266,26 +284,27 @@ const handleSubmit = async () => {
               </div>
             )}
 
+            {/* ---------- STEP 4 ---------- */}
             {step === 4 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Document Upload</h3>
+
                 <div>
-                  <Label htmlFor="documentUpload">Upload Document *</Label>
-                  <Input id="documentUpload" type="file" accept=".pdf,.jpg,.jpeg,.png" />
-                  <p className="text-sm text-muted-foreground mt-1">PDF or Image files only</p>
+                  <Label>Upload Document *</Label>
+                  <Input type="file" accept=".pdf,.jpg,.jpeg,.png" />
                 </div>
-                <div className="text-center">
-                  <p className="text-muted-foreground">OR</p>
-                </div>
+
+                <div className="text-center text-muted-foreground">OR</div>
+
                 <div>
-                  <Label htmlFor="documentCID">IPFS CID (if already uploaded)</Label>
+                  <Label>IPFS CID</Label>
                   <Input
-                    id="documentCID"
                     value={formData.documentCID}
                     onChange={(e) => setFormData({ ...formData, documentCID: e.target.value })}
-                    placeholder="QmXxxx..."
+                    placeholder="Qm..."
                   />
                 </div>
+
                 <div className="flex gap-2">
                   <Button onClick={handleBack} variant="outline" className="flex-1">
                     ← BACK
@@ -297,9 +316,11 @@ const handleSubmit = async () => {
               </div>
             )}
 
+            {/* ---------- STEP 5 ---------- */}
             {step === 5 && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Review & Submit</h3>
+
                 <Card className="bg-muted/30">
                   <CardContent className="pt-6 space-y-2">
                     <p><strong>Name:</strong> {formData.fullName}</p>
@@ -310,8 +331,10 @@ const handleSubmit = async () => {
                     <p><strong>Area:</strong> {formData.area} sqm</p>
                     {formData.notes && <p><strong>Notes:</strong> {formData.notes}</p>}
                     {formData.documentCID && <p><strong>Document CID:</strong> {formData.documentCID}</p>}
+                    {formData.mapLink && <p><strong>Map Link:</strong> {formData.mapLink}</p>}
                   </CardContent>
                 </Card>
+
                 <div className="flex gap-2">
                   <Button onClick={handleBack} variant="outline" className="flex-1">
                     ✏️ EDIT
@@ -322,6 +345,7 @@ const handleSubmit = async () => {
                 </div>
               </div>
             )}
+
           </CardContent>
         </Card>
       </div>

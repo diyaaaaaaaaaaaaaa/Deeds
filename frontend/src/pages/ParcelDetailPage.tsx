@@ -1,7 +1,16 @@
 // src/pages/ParcelDetailPage.tsx
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ExternalLink, Download, Share2, Phone, Mail, MessageCircle, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  ExternalLink,
+  Download,
+  Share2,
+  Phone,
+  Mail,
+  MessageCircle,
+  CheckCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -21,7 +30,10 @@ const ParcelDetailPage: React.FC = () => {
   const handleDispute = () => {
     if (!parcel) return;
     disputeParcel(parcel.id);
-    toast({ title: "Dispute raised", description: `Parcel #${parcel.id} marked disputed locally` });
+    toast({
+      title: "Dispute raised",
+      description: `Parcel #${parcel.id} marked disputed locally`,
+    });
   };
 
   const syncFromChain = async () => {
@@ -29,30 +41,30 @@ const ParcelDetailPage: React.FC = () => {
     toast({ title: "Syncing", description: "Fetching on-chain data..." });
     try {
       const onChain = await getParcelOnChain(parcel.id);
-      // onChain shape depends on node. We'll attempt common shapes:
-      // If view returned a struct-like object -> adapt
-      const data = onChain?.data ?? onChain; // try
-      // Heuristics:
+      const data = onChain?.data ?? onChain;
+
       const statusOnChain =
         data?.status ??
-        (data?.status_enum ? data.status_enum : undefined) ??
+        data?.status_enum ??
         undefined;
 
-      // If status is numeric code (0..3) convert
       let newStatus: any = undefined;
-      if (statusOnChain !== undefined) {
-        const n = Number(statusOnChain);
-        if (!Number.isNaN(n)) {
-          newStatus = n === 1 ? "approved" : n === 2 ? "rejected" : n === 3 ? "disputed" : "pending";
-        } else {
-          // maybe string like "STATUS_APPROVED"
-          if (typeof statusOnChain === "string") {
-            if (statusOnChain.toLowerCase().includes("approved")) newStatus = "approved";
-            else if (statusOnChain.toLowerCase().includes("rejected")) newStatus = "rejected";
-            else if (statusOnChain.toLowerCase().includes("disputed")) newStatus = "disputed";
-            else newStatus = "pending";
-          }
-        }
+      const n = Number(statusOnChain);
+
+      if (!Number.isNaN(n)) {
+        newStatus =
+          n === 1
+            ? "approved"
+            : n === 2
+            ? "rejected"
+            : n === 3
+            ? "disputed"
+            : "pending";
+      } else if (typeof statusOnChain === "string") {
+        if (statusOnChain.toLowerCase().includes("approved")) newStatus = "approved";
+        else if (statusOnChain.toLowerCase().includes("rejected")) newStatus = "rejected";
+        else if (statusOnChain.toLowerCase().includes("disputed")) newStatus = "disputed";
+        else newStatus = "pending";
       }
 
       if (newStatus) {
@@ -62,7 +74,11 @@ const ParcelDetailPage: React.FC = () => {
         toast({ title: "No status found", description: "Couldn't infer on-chain status." });
       }
     } catch (err) {
-      toast({ title: "Sync failed", description: (err as Error).message || "Could not fetch on-chain parcel", variant: "destructive" });
+      toast({
+        title: "Sync failed",
+        description: (err as Error).message || "Could not fetch on-chain parcel",
+        variant: "destructive",
+      });
     }
   };
 
@@ -79,7 +95,13 @@ const ParcelDetailPage: React.FC = () => {
     );
   }
 
-  const tehsildar = { name: "Not Assigned", role: "Tehsildar", phone: "N/A", office: "N/A", walletAddress: "" };
+  const tehsildar = {
+    name: "Not Assigned",
+    role: "Tehsildar",
+    phone: "N/A",
+    office: "N/A",
+    walletAddress: "",
+  };
 
   return (
     <div className="min-h-screen tribal-pattern">
@@ -94,7 +116,9 @@ const ParcelDetailPage: React.FC = () => {
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">📍 PARCEL #{parcel.id} - KHASRA {parcel.khasraNumber}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
+                📍 PARCEL #{parcel.id} - KHASRA {parcel.khasraNumber}
+              </h1>
             </div>
 
             <div className="flex items-center gap-3">
@@ -110,7 +134,9 @@ const ParcelDetailPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* LEFT SIDE */}
           <div className="lg:col-span-2 space-y-6">
+            {/* OWNER DETAILS */}
             <Card className="vintage-border">
               <CardHeader>
                 <CardTitle>👤 OWNER DETAILS</CardTitle>
@@ -120,21 +146,29 @@ const ParcelDetailPage: React.FC = () => {
                   <p className="text-sm text-muted-foreground">Name</p>
                   <p className="text-lg font-semibold">{parcel.ownerName}</p>
                 </div>
+
                 <div>
                   <p className="text-sm text-muted-foreground">Wallet Address</p>
                   <p className="font-mono text-sm">{parcel.ownerWallet}</p>
                 </div>
+
                 <div>
                   <p className="text-sm text-muted-foreground">Total Parcels Owned</p>
                   <p className="font-semibold">—</p>
                 </div>
+
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">View All Parcels by Owner</Button>
-                  <Button size="sm" onClick={syncFromChain}>🔁 Sync from chain</Button>
+                  <Button variant="outline" size="sm">
+                    View All Parcels by Owner
+                  </Button>
+                  <Button size="sm" onClick={syncFromChain}>
+                    🔁 Sync from chain
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
+            {/* LOCATION DETAILS */}
             <Card className="vintage-border">
               <CardHeader>
                 <CardTitle>📍 LOCATION DETAILS</CardTitle>
@@ -145,33 +179,57 @@ const ParcelDetailPage: React.FC = () => {
                     <p className="text-sm text-muted-foreground">Village</p>
                     <p className="font-semibold">{parcel.village}</p>
                   </div>
+
                   <div>
                     <p className="text-sm text-muted-foreground">Tehsil</p>
                     <p className="font-semibold">{parcel.tehsil}</p>
                   </div>
+
                   <div>
                     <p className="text-sm text-muted-foreground">District</p>
                     <p className="font-semibold">{parcel.district}</p>
                   </div>
+
                   <div>
                     <p className="text-sm text-muted-foreground">Khasra Number</p>
                     <p className="font-semibold">{parcel.khasraNumber}</p>
                   </div>
                 </div>
+
                 <Separator />
+
                 <div>
                   <p className="text-sm text-muted-foreground">Area</p>
-                  <p className="text-lg font-bold text-primary">{parcel.area.toLocaleString()} sqm</p>
+                  <p className="text-lg font-bold text-primary">
+                    {parcel.area.toLocaleString()} sqm
+                  </p>
                 </div>
+
                 {parcel.notes && (
                   <div>
                     <p className="text-sm text-muted-foreground">Notes</p>
                     <p className="text-sm">{parcel.notes}</p>
                   </div>
                 )}
+
+                {/* 🌍 MAP BUTTON */}
+                {parcel.mapLink && (
+                  <div className="mt-4">
+                    <a
+                      href={parcel.mapLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="default" className="gap-2 w-full">
+                        🌍 View on Map
+                      </Button>
+                    </a>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
+            {/* DOCUMENT DETAILS */}
             {parcel.documentCID && (
               <Card className="vintage-border">
                 <CardHeader>
@@ -182,16 +240,24 @@ const ParcelDetailPage: React.FC = () => {
                     <p className="text-sm text-muted-foreground">Document CID</p>
                     <p className="font-mono text-sm break-all">{parcel.documentCID}</p>
                   </div>
+
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="gap-2"><ExternalLink className="w-4 h-4" /> VIEW ON IPFS</Button>
-                    <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" /> DOWNLOAD</Button>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <ExternalLink className="w-4 h-4" /> VIEW ON IPFS
+                    </Button>
+
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Download className="w-4 h-4" /> DOWNLOAD
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             )}
           </div>
 
+          {/* RIGHT SIDE */}
           <div className="space-y-6">
+            {/* TEHSILDAR */}
             <Card className="vintage-border">
               <CardHeader>
                 <CardTitle>📌 Know Your Revenue Minister</CardTitle>
@@ -201,15 +267,26 @@ const ParcelDetailPage: React.FC = () => {
                   <p className="text-sm text-muted-foreground">Tehsildar Name</p>
                   <p className="font-semibold">{tehsildar.name}</p>
                 </div>
+
                 <Separator />
+
                 <div className="flex flex-col gap-2">
-                  <Button variant="default" size="sm" className="gap-2 w-full"><Phone className="w-4 h-4" /> CALL</Button>
-                  <Button variant="secondary" size="sm" className="gap-2 w-full"><MessageCircle className="w-4 h-4" /> WHATSAPP</Button>
-                  <Button variant="outline" size="sm" className="gap-2 w-full"><Mail className="w-4 h-4" /> EMAIL</Button>
+                  <Button variant="default" size="sm" className="gap-2 w-full">
+                    <Phone className="w-4 h-4" /> CALL
+                  </Button>
+
+                  <Button variant="secondary" size="sm" className="gap-2 w-full">
+                    <MessageCircle className="w-4 h-4" /> WHATSAPP
+                  </Button>
+
+                  <Button variant="outline" size="sm" className="gap-2 w-full">
+                    <Mail className="w-4 h-4" /> EMAIL
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
+            {/* ACTIONS */}
             <Card className="vintage-border">
               <CardHeader>
                 <CardTitle>⚡ ACTIONS</CardTitle>
@@ -217,12 +294,23 @@ const ParcelDetailPage: React.FC = () => {
               <CardContent className="space-y-2">
                 {parcel.status === "approved" && (
                   <>
-                    <Button variant="default" className="w-full">➡️ TRANSFER OWNERSHIP</Button>
-                    <Button variant="secondary" className="w-full">📑 PRINT CERTIFICATE</Button>
+                    <Button variant="default" className="w-full">
+                      ➡️ TRANSFER OWNERSHIP
+                    </Button>
+
+                    <Button variant="secondary" className="w-full">
+                      📑 PRINT CERTIFICATE
+                    </Button>
                   </>
                 )}
-                <Button variant="destructive" className="w-full" onClick={handleDispute}>⚖️ RAISE DISPUTE</Button>
-                <Button variant="outline" className="w-full gap-2"><Share2 className="w-4 h-4" /> SHARE</Button>
+
+                <Button variant="destructive" className="w-full" onClick={handleDispute}>
+                  ⚖️ RAISE DISPUTE
+                </Button>
+
+                <Button variant="outline" className="w-full gap-2">
+                  <Share2 className="w-4 h-4" /> SHARE
+                </Button>
               </CardContent>
             </Card>
           </div>
