@@ -33,6 +33,43 @@ const translations: Record<Language, Record<string, string>> = {
     'search.district': 'District',
     'search.tehsil': 'Tehsil',
     'search.village': 'Village',
+
+        // Login
+    'login.userLogin': 'User Login',
+    'login.councilLogin': 'Council Login',
+    'login.enterName': 'Enter your name',
+    'login.enterWallet': 'Enter your wallet address',
+
+    // Council Dashboard
+    'council.dashboard': 'Council Dashboard',
+    'council.totalParcels': 'Total Parcels',
+    'council.pending': 'Pending',
+    'council.approved': 'Approved',
+    'council.rejected': 'Rejected',
+    'council.disputed': 'Disputed',
+    'council.queue': 'Pending Parcels Queue',
+    'council.review': 'Review and approve land claims',
+    'council.actions': 'Actions',
+    'council.approve': 'Approve',
+    'council.reject': 'Reject',
+    'council.dispute': 'Dispute',
+
+    // Add Land
+    'add.title': 'Add Land Details',
+    'add.khasraNumber': 'Khasra Number',
+    'add.ownerName': 'Owner Name',
+    'add.area': 'Area (sq. meters)',
+    'add.uploadDocs': 'Upload Land Documents',
+    'add.submit': 'Submit Land',
+
+    // Contact
+    'contact.title': 'Contact Directory',
+
+    // Transfer Ownership
+    'transfer.title': 'Transfer Ownership',
+    'transfer.newOwner': 'New Owner Wallet Address',
+    'transfer.confirm': 'Transfer',
+
     
     // Status
     'status.pending': 'Pending',
@@ -63,6 +100,43 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.contact': 'संपर्क',
     'nav.about': 'बारे में',
     'nav.connectWallet': 'वॉलेट कनेक्ट करें',
+
+        // Login
+    'login.userLogin': 'उपयोगकर्ता लॉगिन',
+    'login.councilLogin': 'परिषद लॉगिन',
+    'login.enterName': 'अपना नाम दर्ज करें',
+    'login.enterWallet': 'अपना वॉलेट पता दर्ज करें',
+
+    // Council Dashboard
+    'council.dashboard': 'परिषद डैशबोर्ड',
+    'council.totalParcels': 'कुल भूमि',
+    'council.pending': 'लंबित',
+    'council.approved': 'स्वीकृत',
+    'council.rejected': 'अस्वीकृत',
+    'council.disputed': 'विवादित',
+    'council.queue': 'लंबित भूमि सूची',
+    'council.review': 'भूमि दावों की समीक्षा और स्वीकृति करें',
+    'council.actions': 'क्रियाएँ',
+    'council.approve': 'स्वीकृत करें',
+    'council.reject': 'अस्वीकृत करें',
+    'council.dispute': 'विवादित करें',
+
+    // Add Land
+    'add.title': 'भूमि विवरण जोड़ें',
+    'add.khasraNumber': 'खसरा नंबर',
+    'add.ownerName': 'मालिक का नाम',
+    'add.area': 'क्षेत्रफल (वर्ग मीटर)',
+    'add.uploadDocs': 'भूमि दस्तावेज़ अपलोड करें',
+    'add.submit': 'भूमि सबमिट करें',
+
+    // Contact
+    'contact.title': 'संपर्क निर्देशिका',
+
+    // Transfer Ownership
+    'transfer.title': 'स्वामित्व हस्तांतरण',
+    'transfer.newOwner': 'नए मालिक का वॉलेट पता',
+    'transfer.confirm': 'हस्तांतरण करें',
+
     
     // Search tabs
     'search.khasraId': 'खसरा आईडी',

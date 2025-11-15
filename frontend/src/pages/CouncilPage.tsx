@@ -7,10 +7,14 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { useParcel } from "@/contexts/ParcelContext";
 import { useToast } from "@/hooks/use-toast";
 import { useContract } from "@/hooks/useContract";
+import { useLanguage } from "@/contexts/LanguageContext";
+
 
 const CouncilPage = () => {
   const { parcels, councilMembers, approveParcel, rejectParcel, disputeParcel } = useParcel();
   const { toast } = useToast();
+  const { t } = useLanguage();
+
   const { approve: approveOnChain, reject: rejectOnChain, dispute: disputeOnChain } = useContract();
 
   const pendingParcels = parcels.filter(p => p.status === "pending");
@@ -58,7 +62,7 @@ const CouncilPage = () => {
   return (
     <div className="min-h-screen tribal-pattern">
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-6">🧑‍💼 Council Dashboard</h1>
+        <h1 className="text-3xl md:text-4xl font-bold text-primary mb-6">🧑‍💼 {t("council.dashboard")} Dashboard</h1>
 
         {/* SUMMARY GRID */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
@@ -126,12 +130,12 @@ const CouncilPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Parcel #</TableHead>
-                    <TableHead>Khasra</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Date Submitted</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t("Parcel")} #</TableHead>
+                    <TableHead>{t("Khasra")} </TableHead>
+                    <TableHead>{t("Owner")} </TableHead>
+                    <TableHead>{t("Location")} </TableHead>
+                    <TableHead>{t("Date.submitted")} </TableHead>
+                    <TableHead>{t("Actions")} </TableHead>
                   </TableRow>
                 </TableHeader>
 
